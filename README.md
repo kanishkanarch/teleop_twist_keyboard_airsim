@@ -1,5 +1,8 @@
+### **NOTE**: [Original ROS teleoperation package](https://github.com/ros-teleop/teleop_twist_keyboard) is edited to work with [AirSim](https://microsoft.github.io/AirSim/airsim_ros_pkgs/)
+
+
 # teleop_twist_keyboard_airsim
-Generic Keyboard Teleop for ROS
+Generic Keyboard Teleop for AirSim ROS
 
 # Launch
 Run.

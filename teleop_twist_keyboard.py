@@ -9,6 +9,7 @@ import rospy
 
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import TwistStamped
+from airsim_ros_pkgs.msg import VelCmd
 
 import sys
 from select import select
@@ -21,6 +22,7 @@ else:
 
 
 TwistMsg = Twist
+VelCmdMsg = VelCmd
 
 msg = """
 Reading from the keyboard  and Publishing to Twist!
@@ -49,24 +51,24 @@ CTRL-C to quit
 """
 
 moveBindings = {
-        'i':(1,0,0,0),
-        'o':(1,0,0,-1),
-        'j':(0,0,0,1),
-        'l':(0,0,0,-1),
-        'u':(1,0,0,1),
-        ',':(-1,0,0,0),
-        '.':(-1,0,0,1),
-        'm':(-1,0,0,-1),
-        'O':(1,-1,0,0),
-        'I':(1,0,0,0),
-        'J':(0,1,0,0),
-        'L':(0,-1,0,0),
-        'U':(1,1,0,0),
-        '<':(-1,0,0,0),
-        '>':(-1,-1,0,0),
-        'M':(-1,1,0,0),
-        't':(0,0,1,0),
-        'b':(0,0,-1,0),
+        'i':(10,0,0,0),
+        'u':(10,0,0,-10),
+        'j':(0,0,0,-10),
+        'l':(0,0,0,10),
+        'o':(10,0,0,10),
+        ',':(-10,0,0,0),
+        'm':(-10,0,0,10),
+        '.':(-10,0,0,-10),
+        'O':(10,-10,0,0),
+        'I':(10,0,0,0),
+        'J':(0,10,0,0),
+        'L':(0,-10,0,0),
+        'U':(10,10,0,0),
+        '<':(-10,0,0,0),
+        '>':(-10,-10,0,0),
+        'M':(-10,10,0,0),
+        'b':(0,0,10,0),
+        't':(0,0,-10,0),
     }
 
 speedBindings={
@@ -81,7 +83,7 @@ speedBindings={
 class PublishThread(threading.Thread):
     def __init__(self, rate):
         super(PublishThread, self).__init__()
-        self.publisher = rospy.Publisher('cmd_vel', TwistMsg, queue_size = 1)
+        self.publisher = rospy.Publisher('/airsim_node/SimpleFlight/vel_cmd_body_frame', VelCmdMsg, queue_size = 1)
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
@@ -130,6 +132,7 @@ class PublishThread(threading.Thread):
 
     def run(self):
         twist_msg = TwistMsg()
+        velcmd_msg = VelCmdMsg()
 
         if stamped:
             twist = twist_msg.twist
@@ -137,6 +140,7 @@ class PublishThread(threading.Thread):
             twist_msg.header.frame_id = twist_frame
         else:
             twist = twist_msg
+            velcmd = velcmd_msg
         while not self.done:
             if stamped:
                 twist_msg.header.stamp = rospy.Time.now()
@@ -145,25 +149,32 @@ class PublishThread(threading.Thread):
             self.condition.wait(self.timeout)
 
             # Copy state into twist message.
-            twist.linear.x = self.x * self.speed
-            twist.linear.y = self.y * self.speed
-            twist.linear.z = self.z * self.speed
-            twist.angular.x = 0
-            twist.angular.y = 0
-            twist.angular.z = self.th * self.turn
+            # twist.linear.x = self.x * self.speed
+            # twist.linear.y = self.y * self.speed
+            # twist.linear.z = self.z * self.speed
+            # twist.angular.x = 0
+            # twist.angular.y = 0
+            # twist.angular.z = self.th * self.turn
 
+            velcmd.twist.linear.x = self.x * self.speed
+            velcmd.twist.linear.y = self.y * self.speed
+            velcmd.twist.linear.z = self.z * self.speed
+            velcmd.twist.angular.x = 0
+            velcmd.twist.angular.y = 0
+            velcmd.twist.angular.z = self.th * self.turn
             self.condition.release()
 
             # Publish.
-            self.publisher.publish(twist_msg)
+            # self.publisher.publish(twist_msg)
+            self.publisher.publish(velcmd_msg)
 
         # Publish stop message when thread exits.
-        twist.linear.x = 0
-        twist.linear.y = 0
-        twist.linear.z = 0
-        twist.angular.x = 0
-        twist.angular.y = 0
-        twist.angular.z = 0
+        velcmd.twist.linear.x = 0
+        velcmd.twist.linear.y = 0
+        velcmd.twist.linear.z = 0
+        velcmd.twist.angular.x = 0
+        velcmd.twist.angular.y = 0
+        velcmd.twist.angular.z = 0
         self.publisher.publish(twist_msg)
 
 

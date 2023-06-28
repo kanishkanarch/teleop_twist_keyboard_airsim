@@ -20,6 +20,11 @@ Publishing to a different topic (in this case `my_cmd_vel`).
 rosrun teleop_twist_keyboard_airsim teleop_twist_keyboard_airsim.py /airsim_node/SimpleFlight/vel_cmd_body_frame:=my_cmd_vel
 ```
 
+For example, if you are using PX4 Multirotor, teleoperate like this:
+```
+rosrun teleop_twist_keyboard_airsim teleop_twist_keyboard_airsim.py /airsim_node/SimpleFlight/vel_cmd_body_frame:=/airsim_node/PX4/vel_cmd_body_frame
+```
+
 # Usage
 ```
 Reading from the keyboard  and Publishing to Twist!

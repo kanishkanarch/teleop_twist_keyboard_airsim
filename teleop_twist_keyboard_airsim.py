@@ -51,19 +51,20 @@ CTRL-C to quit
 """
 
 moveBindings = {
+        'k':(0,0,0,0),
         'i':(10,0,0,0),
-        'u':(10,0,0,-10),
-        'j':(0,0,0,-10),
-        'l':(0,0,0,10),
-        'o':(10,0,0,10),
+        'u':(10,0,0,-1),
+        'j':(0,0,0,-1),
+        'l':(0,0,0,1),
+        'o':(10,0,0,1),
         ',':(-10,0,0,0),
-        'm':(-10,0,0,10),
-        '.':(-10,0,0,-10),
-        'O':(10,-10,0,0),
-        'I':(10,0,0,0),
+        'm':(-10,0,0,1),
+        '.':(-10,0,0,-1),
+        'O':(10,0,5,1),
+        'I':(10,0,5,0),
         'J':(0,10,0,0),
         'L':(0,-10,0,0),
-        'U':(10,10,0,0),
+        'U':(10,0,5,-1),
         '<':(-10,0,0,0),
         '>':(-10,-10,0,0),
         'M':(-10,10,0,0),
@@ -216,7 +217,7 @@ if __name__=="__main__":
     speed_limit = rospy.get_param("~speed_limit", 1000)
     turn_limit = rospy.get_param("~turn_limit", 1000)
     repeat = rospy.get_param("~repeat_rate", 0.0)
-    key_timeout = rospy.get_param("~key_timeout", 0.5)
+    key_timeout = rospy.get_param("~key_timeout", 0.005)
     stamped = rospy.get_param("~stamped", False)
     twist_frame = rospy.get_param("~frame_id", '')
     if stamped:
@@ -243,6 +244,10 @@ if __name__=="__main__":
                 y = moveBindings[key][1]
                 z = moveBindings[key][2]
                 th = moveBindings[key][3]
+                pub_thread.x = x
+                pub_thread.y = y
+                pub_thread.z = z
+                pub_thread.th = th
             elif key in speedBindings.keys():
                 speed = min(speed_limit, speed * speedBindings[key][0])
                 turn = min(turn_limit, turn * speedBindings[key][1])
@@ -258,11 +263,11 @@ if __name__=="__main__":
                 # Skip updating cmd_vel if key timeout and robot already
                 # stopped.
                 if key == '' and x == 0 and y == 0 and z == 0 and th == 0:
-                    continue
-                x = 0
-                y = 0
-                z = 0
-                th = 0
+                    x = pub_thread.x
+                    y = pub_thread.y
+                    z = pub_thread.z
+                    th = pub_thread.th
+                    pass
                 if (key == '\x03'):
                     break
 
